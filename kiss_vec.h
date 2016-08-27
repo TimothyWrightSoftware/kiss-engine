@@ -28,22 +28,22 @@ typedef struct { float m[16]; } kiss_mat4;
 typedef struct { float v[3]; } kiss_vec3;
 typedef struct { float v[4]; } kiss_vec4;
 
-#define KISS_VEC3(x, y, z) (kiss_vec3){{(x), (y), (z)}}
+#define KISS_VEC3(x, y, z) {(x), (y), (z)}
 #define KISS_VEC3_ZERO() KISS_VEC3( 0.0f, 0.0f, 0.0f )
 #define KISS_VEC3_DBG(v, out) \
 	fprintf( out, "[%f, %f, %f]\n", v.v[ 0], v.v[ 1], v.v[ 2] ) 
 #define KISS_VEC3X(V) (V)->v[0], (V)->v[1], (V)->v[2]
 
-#define KISS_VEC4(x, y, z, w) (kiss_vec4){{(x), (y), (z), (w)}}
+#define KISS_VEC4(x, y, z, w) {(x), (y), (z), (w)}
 #define KISS_VEC4_ZERO() KISS_VEC4( 0.0f, 0.0f, 0.0f, 0.0f ) 
 #define KISS_VEC4_DBG(v, out) \
 	fprintf( out, "[%f, %f, %f, %f]\n", v.v[ 0], v.v[ 1], v.v[ 2], v.v[ 3] ) 
 #define KISS_VEC4X(V) (V)->v[0], (V)->v[1], (V)->v[2], (V)->v[3]
 
-#define KISS_MAT4() (kiss_mat4){{ 1.0f, 0.0f, 0.0f, 0.0f, \
-											 0.0f, 1.0f, 0.0f, 0.0f, \
-											 0.0f, 0.0f, 1.0f, 0.0f, \
-											 0.0f, 0.0f, 0.0f, 1.0f }}
+#define KISS_MAT4() { 1.0f, 0.0f, 0.0f, 0.0f, \
+					  0.0f, 1.0f, 0.0f, 0.0f, \
+					  0.0f, 0.0f, 1.0f, 0.0f, \
+				      0.0f, 0.0f, 0.0f, 1.0f }
 
 //TODO - better name for this
 #define KISS_MAT4DBG(mat, out) do {\
@@ -59,11 +59,13 @@ KISS_VEC_DEF void kiss_ident_m4( kiss_mat4 *mat );
 KISS_VEC_DEF void kiss_trans_m4v3( kiss_mat4 *out, kiss_vec3 *trans );
 KISS_VEC_DEF void kiss_trans_m4f3( kiss_mat4 *out, float* v );
 KISS_VEC_DEF void kiss_mul_m4( kiss_mat4 *out, kiss_mat4 *mat1, kiss_mat4 *mat2 );
-KISS_VEC_DEF void kiss_perspective_m4( kiss_mat4 *out, float fovy_radians, float aspect, float near, float far );
+KISS_VEC_DEF void kiss_perspective_m4( kiss_mat4 *out, float fovy_radians, float aspect, float n, float f );
 KISS_VEC_DEF void kiss_rotx_m4(kiss_mat4 *out, float ang);
 KISS_VEC_DEF void kiss_roty_m4(kiss_mat4 *out, float ang);
 KISS_VEC_DEF void kiss_rotz_m4(kiss_mat4 *out, float ang);
 KISS_VEC_DEF void kiss_rot_axis_m4(kiss_mat4 *out, int axis, float ang);
+KISS_VEC_DEF void kiss_perspective_m4(kiss_mat4 *out, float fovy_radians, float aspect, float n, float f);
+KISS_VEC_DEF void kiss_ortho_m4(kiss_mat4 *out, float left, float right, float bottom, float top, float nearVal, float farVal);
 
 KISS_VEC_DEF void kiss_ident_f16( float *mat );
 KISS_VEC_DEF void kiss_trans_f16v3( float *out, kiss_vec3 *trans );
@@ -73,7 +75,8 @@ KISS_VEC_DEF void kiss_roty_f16(float *mat, float ang);
 KISS_VEC_DEF void kiss_rotz_f16(float *mat, float ang);
 KISS_VEC_DEF void kiss_rot_axis_f16(float *mat, int axis, float ang);
 KISS_VEC_DEF void kiss_mul_f16( float *out, float *mat1, float *mat2 );
-KISS_VEC_DEF void kiss_perspective_f16(float *out, float fovy_radians, float aspect, float near, float far );
+KISS_VEC_DEF void kiss_perspective_f16(float *out, float fovy_radians, float aspect, float n, float f);
+KISS_VEC_DEF void kiss_ortho_f16(float *out, float left, float right, float bottom, float top, float nearVal, float farVal);
 
 #ifdef __cplusplus
 }
@@ -85,10 +88,6 @@ KISS_VEC_DEF void kiss_perspective_f16(float *out, float fovy_radians, float asp
 
 KISS_VEC_DEF void kiss_ident_m4( kiss_mat4* mat ) {
 	kiss_ident_f16( (float*)mat );
-}
-
-KISS_VEC_DEF void kiss_perspective_m4( kiss_mat4 *out, float fovy_radians, float aspect, float near, float far ) {
-	kiss_perspective_f16( (float*)out, fovy_radians, aspect, near, far );
 }
 
 KISS_VEC_DEF void kiss_trans_m4v3( kiss_mat4 *out, kiss_vec3 *trans ) {
@@ -115,6 +114,14 @@ KISS_VEC_DEF void kiss_rot_axis_m4(kiss_mat4 *out, int axis, float ang) {
 	kiss_rot_axis_f16( (float*)out, axis, ang );
 }
 
+KISS_VEC_DEF void kiss_perspective_m4(kiss_mat4 *out, float fovy_radians, float aspect, float n, float f) {
+	kiss_perspective_f16((float*)out, fovy_radians, aspect, n, f);
+}
+
+KISS_VEC_DEF void kiss_ortho_m4(kiss_mat4 *out, float left, float right, float bottom, float top, float nearVal, float farVal) {
+	kiss_ortho_f16((float*)out, left, right, bottom, top, nearVal, farVal);
+}
+
 KISS_VEC_DEF void kiss_ident_f16( float* mat ) {
 	mat[ 0] = 1.0f; mat[ 1] = 0.0f; mat[ 2] = 0.0f; mat[ 3] = 0.0f;
 	mat[ 4] = 0.0f; mat[ 5] = 1.0f; mat[ 6] = 0.0f; mat[ 7] = 0.0f;
@@ -123,14 +130,12 @@ KISS_VEC_DEF void kiss_ident_f16( float* mat ) {
 }
 
 KISS_VEC_DEF void kiss_trans_f16v3( float *out, kiss_vec3 *trans ) {
-	kiss_ident_f16( out );
 	out[12] = trans->v[0];
 	out[13] = trans->v[1];
 	out[14] = trans->v[2];
 }
 
 KISS_VEC_DEF void kiss_trans_f16f3( float *out, float* v) {
-	kiss_ident_f16( out );
 	out[12] = v[0];
 	out[13] = v[1];
 	out[14] = v[2];
@@ -202,12 +207,12 @@ KISS_VEC_DEF void kiss_mul_f16( float *out, float *mat1, float *mat2 ) {
 	out[15] = KISS_DOT4( mat1, 12, 1, mat2, 3, 4 );
 }
 
-KISS_VEC_DEF void kiss_perspective_f16(float *out, float fovy_radians, float aspect, float near, float far ) {
+KISS_VEC_DEF void kiss_perspective_f16(float *out, float fovy_radians, float aspect, float n, float f ) {
 
 	 float sine, cotangent, deltaZ;
 	 float radians = fovy_radians / 2.0f;
 
-	 deltaZ = far - near;
+	 deltaZ = f - n;
 	 sine = sin(radians);
 
 	 // doesn't this need some kind of epsilon thingy???
@@ -221,11 +226,23 @@ KISS_VEC_DEF void kiss_perspective_f16(float *out, float fovy_radians, float asp
 	 kiss_ident_f16( out );
 	 out[ 0] = cotangent / aspect;
 	 out[ 5] = cotangent;
-	 out[10] = -(far + near) / deltaZ;
+	 out[10] = -(f + n) / deltaZ;
 	 out[11] = -1.0f;
-	 out[14] = -2.0f * near * far / deltaZ;
+	 out[14] = -2.0f * n * f / deltaZ;
 	 out[15] = 0.0f;
 	
+}
+
+KISS_VEC_DEF void kiss_ortho_f16(float *out, float left, float right, float bottom, float top, float nearVal, float farVal) {
+
+	kiss_ident_f16(out);
+	out[0] = 2.0f / (right - left);
+	out[5] = 2.0f / (top - bottom);
+	out[10] = -2.0f / (farVal - nearVal);
+	out[12] = -((right + left) / (right - left));
+	out[13] = -((top + bottom) / (top - bottom));
+	out[14] = -((farVal + nearVal) / (farVal - nearVal));
+
 }
 
 #endif // end KISS_VEC_IMPLEMENTATION
